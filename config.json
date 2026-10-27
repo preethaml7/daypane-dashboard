@@ -9,9 +9,9 @@
   "fxBase": "USD",
   "briefing": {
     "sections": [
-      { "title": "TOP STORIES", "source": "BBC World", "url": "https://feeds.bbci.co.uk/news/world/rss.xml" },
+      { "title": "U.S. TOP STORIES", "source": "BBC U.S. & Canada", "url": "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml" },
       { "title": "TECH & TRENDS", "source": "BBC Technology", "url": "https://feeds.bbci.co.uk/news/technology/rss.xml" },
-      { "title": "BUSINESS & FINANCE", "source": "BBC Business", "url": "https://feeds.bbci.co.uk/news/business/rss.xml" }
+      { "title": "U.S. BUSINESS & FINANCE", "source": "NPR Business", "url": "https://feeds.npr.org/1006/rss.xml" }
     ]
   },
   "stocks": [],

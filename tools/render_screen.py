@@ -567,7 +567,7 @@ def render_briefing(d, out_path):
     if y > 1350:
         raise ValueError('Briefing exceeds available screen height')
     draw.line((40, 1380, 1032, 1380), fill=BLACK, width=2)
-    draw.text((42, 1391), 'AUTO UPDATES ~30 MIN  ·  HEADLINES: BBC  ·  SWIPE DOWN TO EXIT', font=f(20), fill=BLACK)
+    draw.text((42, 1391), 'AUTO UPDATES ~30 MIN  ·  HEADLINES: BBC / NPR  ·  SWIPE DOWN TO EXIT', font=f(20), fill=BLACK)
     img = img.resize((LAYOUT['width'], LAYOUT['height']), Image.Resampling.LANCZOS)
     out = img.convert('1', dither=Image.Dither.FLOYDSTEINBERG)
     if out_path: out.save(out_path)
