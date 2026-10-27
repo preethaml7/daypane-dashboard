@@ -51,7 +51,11 @@ jobs:
           python-version: '3.11'
       - run: npm ci
       - run: python -m pip install Pillow==11.3.0 tzdata
-      - run: sudo apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y -qq fonts-noto-cjk
+      - name: Download renderer fonts from official Noto repository
+        run: |
+          mkdir -p fonts
+          curl --fail --location --retry 2 --max-time 60 https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf -o fonts/NotoSansCJKsc-Regular.otf
+          curl --fail --location --retry 2 --max-time 60 https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Bold.otf -o fonts/NotoSansCJKsc-Bold.otf
       - name: Build image or retain last good generation
         id: build
         env:
