@@ -49,6 +49,7 @@ function buildConfig() {
     },
     fxBase: fileConfig.fxBase ?? 'USD',
     stocks: fileConfig.stocks ?? DEFAULT_STOCKS,
+    briefing: fileConfig.briefing ?? {},
     clocks: fileConfig.clocks ?? DEFAULT_CLOCKS,
 
     claudeCap: Number(fileConfig.claudeCap ?? 1000),

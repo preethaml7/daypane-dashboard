@@ -515,6 +515,64 @@ def draw_footer(draw, d, y, offline=False, last_ok=None):
     draw.text((PAD, y), txt, fill=GRAY, font=f(F_FOOT))
     return y + F_FOOT
 
+def render_briefing(d, out_path):
+    """A high-contrast daily briefing designed for a monochrome Kindle."""
+    img = Image.new('L', (1072, 1448), WHITE)
+    draw = ImageDraw.Draw(img)
+    now = display_now()
+    draw.rectangle((0, 0, 1072, 174), fill=BLACK)
+    draw.text((40, 24), 'THE DAILY BRIEF', font=f(53, bold=True), fill=WHITE)
+    draw.text((42, 96), now.strftime('%A, %B %d').upper(), font=f(26), fill=WHITE)
+    draw.text((42, 134), 'ARLINGTON HEIGHTS  /  ILLINOIS', font=f(20), fill=WHITE)
+    updated = 'LAST UPDATED ' + now.strftime('%I:%M %p').lstrip('0') + ' CT'
+    draw.text((1032 - tw(draw, updated, f(22)), 135), updated, font=f(22), fill=WHITE)
+    w = d.get('weather') or {}
+    draw.rounded_rectangle((30, 194, 1042, 398), radius=18, outline=BLACK, width=3)
+    draw.text((52, 207), 'LOCAL WEATHER', font=f(24, bold=True), fill=BLACK)
+    def pair(value):
+        if not isinstance(value, (int, float)): return 'Unavailable'
+        c = (value - 32) * 5 / 9 if LAYOUT['temperatureUnit'] == 'F' else value
+        return '%s°F / %s°C' % (fnum(c * 9 / 5 + 32), fnum(c))
+    draw.text((50, 245), pair(w.get('temp')), font=f(58, bold=True), fill=BLACK)
+    draw.text((54, 323), 'HIGH ' + pair(w.get('high')) + '    LOW ' + pair(w.get('low')), font=f(23), fill=BLACK)
+    conditions = '%s  |  Humidity %s%%  |  Open-Meteo' % (w.get('text', 'Weather unavailable'), w.get('humidity', '?'))
+    draw.text((54, 359), conditions, font=f(23), fill=BLACK)
+
+    y = 421
+    for index, section in enumerate((d.get('briefing') or {}).get('sections', [])[:3]):
+        draw.rectangle((32, y, 1040, y + 44), fill=BLACK)
+        draw.text((47, y + 3), '%02d  %s' % (index + 1, section['title']), font=f(27, bold=True), fill=WHITE)
+        source = section.get('source', '')
+        draw.text((1024 - tw(draw, source, f(20)), y + 10), source, font=f(20), fill=WHITE)
+        y += 58
+        items = section.get('items') or [{'title': 'Feed temporarily unavailable. Retrying next update.'}]
+        for item in items[:3]:
+            title = item['title']
+            lines, line = [], ''
+            for word in title.split():
+                candidate = (line + ' ' + word).strip()
+                if tw(draw, candidate, f(29)) > 934 and line:
+                    lines.append(line)
+                    line = word
+                else:
+                    line = candidate
+            if line: lines.append(line)
+            draw.ellipse((45, y + 15, 53, y + 23), fill=BLACK)
+            for j, line in enumerate(lines[:2]):
+                if j == 1 and len(lines) > 2:
+                    line = clip(draw, line + ' …', f(29), 934)
+                draw.text((69, y + j * 36), line, font=f(29), fill=BLACK)
+            y += min(len(lines), 2) * 36 + 12
+        y += 10
+    if y > 1350:
+        raise ValueError('Briefing exceeds available screen height')
+    draw.line((40, 1380, 1032, 1380), fill=BLACK, width=2)
+    draw.text((42, 1391), 'AUTO UPDATES ~30 MIN  ·  HEADLINES: BBC  ·  SWIPE DOWN TO EXIT', font=f(20), fill=BLACK)
+    img = img.resize((LAYOUT['width'], LAYOUT['height']), Image.Resampling.LANCZOS)
+    out = img.convert('1', dither=Image.Dither.FLOYDSTEINBERG)
+    if out_path: out.save(out_path)
+    return out
+
 # ---------- 主流程 ----------
 def render(d, out_path=None, language="zh"):
     global LANG
@@ -532,6 +590,8 @@ def render(d, out_path=None, language="zh"):
         for key in ('temp','high','low'):
             value = (d.get('weather') or {}).get(key)
             if isinstance(value, (int,float)): d['weather'][key] = value*9/5+32
+    if LANG == 'en' and (d.get('briefing') or {}).get('sections'):
+        return render_briefing(d, out_path)
     img = Image.new('L', (SCREEN_W, SCREEN_H), WHITE)
     draw = ImageDraw.Draw(img)
     quotes = load_quotes()
