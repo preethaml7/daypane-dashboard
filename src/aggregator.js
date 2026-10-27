@@ -51,8 +51,8 @@ export async function buildDashboard(db) {
     getNews(),
     getMlb(),
     getNews('en'),
-    getBriefing()
-    , getMarketBrief()
+    getBriefing(),
+    getMarketBrief()
   ]);
 
   const reported = cloud ? getReported() : null;

@@ -588,7 +588,7 @@ def draw_market_brief(draw, market, y):
         text = '%s  %s  %s (24h)' % (coin['symbol'], money(coin.get('price')), pct(coin.get('change'))) if coin.get('ok') else coin['symbol'] + ' unavailable'
         draw.text((44 + i*510, y + 226), text, font=f(25, bold=True), fill=BLACK)
     draw.text((44, y + 265), 'Crypto: Coinbase · Rolling 24h change', font=f(19), fill=BLACK)
-    return y + 298
+    return y + 288
 
 def render_briefing(d, out_path):
     """A high-contrast daily briefing designed for a monochrome Kindle."""
