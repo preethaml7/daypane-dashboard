@@ -515,6 +515,46 @@ def draw_footer(draw, d, y, offline=False, last_ok=None):
     draw.text((PAD, y), txt, fill=GRAY, font=f(F_FOOT))
     return y + F_FOOT
 
+def draw_weather_art(draw, code, cx=887, cy=281):
+    """Bold line art for WMO conditions; no emoji/font dependency."""
+    clear = code == 0
+    partly = code in (1, 2)
+    rain = code in (51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82)
+    snow = code in (71, 73, 75, 77, 85, 86)
+    storm = code in (95, 96, 99)
+    fog = code in (45, 48)
+    if clear or partly:
+        sx, sy = (cx, cy) if clear else (cx - 48, cy - 29)
+        radius = 35 if clear else 27
+        for a in range(0, 360, 45):
+            angle = math.radians(a)
+            draw.line((sx + math.cos(angle) * (radius + 12), sy + math.sin(angle) * (radius + 12),
+                       sx + math.cos(angle) * (radius + 27), sy + math.sin(angle) * (radius + 27)), fill=BLACK, width=6)
+        draw.ellipse((sx-radius, sy-radius, sx+radius, sy+radius), fill=WHITE, outline=BLACK, width=6)
+    if not clear:
+        # Overlapping filled shapes form a clean cloud silhouette.
+        circles = [(-48, 1, 29), (-13, -23, 40), (32, -8, 34), (61, 11, 25)]
+        for dx, dy, r in circles:
+            draw.ellipse((cx+dx-r, cy+dy-r, cx+dx+r, cy+dy+r), fill=BLACK)
+        draw.rounded_rectangle((cx-72, cy-3, cx+83, cy+38), radius=20, fill=BLACK)
+        for dx, dy, r in circles:
+            draw.ellipse((cx+dx-r+6, cy+dy-r+6, cx+dx+r-6, cy+dy+r-6), fill=WHITE)
+        draw.rounded_rectangle((cx-66, cy+3, cx+77, cy+32), radius=14, fill=WHITE)
+        if rain:
+            for dx in (-40, 0, 40):
+                draw.line((cx+dx+6, cy+52, cx+dx-4, cy+70), fill=BLACK, width=6)
+        if snow:
+            for dx in (-40, 5, 50):
+                x, y = cx+dx, cy+61
+                for a in (0, 60, 120):
+                    angle = math.radians(a)
+                    draw.line((x-10*math.cos(angle), y-10*math.sin(angle), x+10*math.cos(angle), y+10*math.sin(angle)), fill=BLACK, width=3)
+        if storm:
+            draw.polygon([(cx+3,cy+43),(cx-20,cy+68),(cx,cy+68),(cx-9,cy+91),(cx+30,cy+56),(cx+9,cy+56)], fill=BLACK)
+        if fog:
+            for dy, dx in ((51,0),(65,12),(79,-8)):
+                draw.line((cx-67+dx,cy+dy,cx+68+dx,cy+dy), fill=BLACK, width=5)
+
 def render_briefing(d, out_path):
     """A high-contrast daily briefing designed for a monochrome Kindle."""
     img = Image.new('L', (1072, 1448), WHITE)
@@ -534,6 +574,7 @@ def render_briefing(d, out_path):
         c = (value - 32) * 5 / 9 if LAYOUT['temperatureUnit'] == 'F' else value
         return '%s°F / %s°C' % (fnum(c * 9 / 5 + 32), fnum(c))
     draw.text((50, 245), pair(w.get('temp')), font=f(58, bold=True), fill=BLACK)
+    draw_weather_art(draw, w.get('code'))
     draw.text((54, 323), 'HIGH ' + pair(w.get('high')) + '    LOW ' + pair(w.get('low')), font=f(23), fill=BLACK)
     conditions = '%s  |  Humidity %s%%  |  Open-Meteo' % (w.get('text', 'Weather unavailable'), w.get('humidity', '?'))
     draw.text((54, 359), conditions, font=f(23), fill=BLACK)
