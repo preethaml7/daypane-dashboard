@@ -379,14 +379,26 @@ def draw_weather(draw, d, y):
     w = d.get('weather', {})
     y = draw_title(draw, y, tr('天气'), w)
     if w.get('ok'):
-        t1 = '%s°%s' % (fnum(w.get('temp')), LAYOUT['temperatureUnit'] if LAYOUT else 'C')
+        unit = LAYOUT['temperatureUnit'] if LAYOUT else 'C'
+        def temperature(value):
+            primary = '%s°%s' % (fnum(value), unit)
+            if not isinstance(value, (int, float)):
+                return primary
+            other = (value - 32) * 5 / 9 if unit == 'F' else value * 9 / 5 + 32
+            return '%s / %s°%s' % (primary, fnum(other), 'C' if unit == 'F' else 'F')
+        t1 = temperature(w.get('temp'))
         ft = f(F_BIG, bold=True)
         draw.text((PAD, y), t1, fill=BLACK, font=ft)
         tw1 = tw(draw, t1, ft)
-        det = ('%s  H%s L%s  RH%s%%' if LANG == 'en' else '%s  高%s 低%s  湿%s%%') % (w.get('text', ''), fnum(w.get('high')), fnum(w.get('low')), w.get('humidity', '?'))
-        draw.text((PAD + tw1 + 24, y + 14), det, fill=GRAY, font=f(F_SMALL))
+        bottom = draw.textbbox((PAD, y), t1, font=ft)[3]
+        detail_y = bottom + 12
+        det = ('High %s    Low %s' if LANG == 'en' else '高 %s    低 %s') % (temperature(w.get('high')), temperature(w.get('low')))
+        draw.text((PAD, detail_y), det, fill=BLACK, font=f(F_SMALL))
+        conditions_y = detail_y + F_SMALL + 10
+        conditions = '%s    RH%s%%' % (w.get('text', ''), w.get('humidity', '?'))
+        draw.text((PAD, conditions_y), conditions, fill=GRAY, font=f(F_SMALL))
         # 温度大字用 56px 字体，实际字形高度超过 F_BIG，固定 y+F_BIG 会让字形底部压过分隔线
-        return draw.textbbox((PAD, y), t1, font=ft)[3] + 8
+        return conditions_y + F_SMALL + 12
     else:
         draw.text((PAD, y), tr('天气不可用'), fill=GRAY, font=f(F_SMALL))
         return y + F_SMALL + 8
