@@ -566,27 +566,27 @@ def draw_market_brief(draw, market, y):
         return '{:+.1f}%'.format(value) if isinstance(value, (int, float)) else 'N/A'
     for column, (label, key) in enumerate([('TOP GAINERS', 'gainers'), ('TOP LOSERS', 'losers')]):
         x = 44 + column * 510
-        draw.text((x, y), label, font=f(22, bold=True), fill=BLACK)
+        draw.text((x, y), label, font=f(24, bold=True), fill=BLACK)
         items = market.get(key, [])
         if not items:
             draw.text((x, y + 34), 'Quotes temporarily unavailable', font=f(20), fill=BLACK)
         for i, item in enumerate(items[:2]):
             row = y + 31 + i * 74
             title = '%s  %s  %s' % (item['symbol'], money(item.get('price')), pct(item.get('change')))
-            draw.text((x, row), clip(draw, title, f(26, bold=True), 470), font=f(26, bold=True), fill=BLACK)
+            draw.text((x, row), clip(draw, title, f(30, bold=True), 470), font=f(30, bold=True), fill=BLACK)
             price, low, high = item.get('price'), item.get('low'), item.get('high')
             if all(isinstance(v, (int, float)) and v > 0 for v in (price, low, high)):
-                context = '52W: %+.0f%% above low / %+.0f%% vs high' % ((price/low-1)*100, (price/high-1)*100)
+                context = '52W: %+.0f%% from low / %+.0f%% from high' % ((price/low-1)*100, (price/high-1)*100)
             else:
                 context = '52-week range unavailable'
-            draw.text((x, row + 34), context, font=f(20), fill=BLACK)
+            draw.text((x, row + 38), clip(draw, context, f(22), 474), font=f(22), fill=BLACK)
     times = [q.get('quoteTime') for q in market.get('gainers', []) + market.get('losers', []) if q.get('quoteTime')]
     stamp = datetime.fromtimestamp(min(times), ZoneInfo('America/Chicago')).strftime('%b %d %I:%M %p CT') if times else 'unavailable'
     draw.text((44, y + 183), 'Stocks: ' + stamp + ' · Daily session move; quotes may be delayed', font=f(19), fill=BLACK)
     draw.line((42, y + 214, 1030, y + 214), fill=BLACK, width=1)
     for i, coin in enumerate(market.get('crypto', [])[:2]):
         text = '%s  %s  %s (24h)' % (coin['symbol'], money(coin.get('price')), pct(coin.get('change'))) if coin.get('ok') else coin['symbol'] + ' unavailable'
-        draw.text((44 + i*510, y + 226), text, font=f(25, bold=True), fill=BLACK)
+        draw.text((44 + i*510, y + 226), text, font=f(29, bold=True), fill=BLACK)
     draw.text((44, y + 265), 'Crypto: Coinbase · Rolling 24h change', font=f(19), fill=BLACK)
     return y + 308
 
@@ -617,18 +617,20 @@ def render_briefing(d, out_path):
     y = 421
     y = draw_market_brief(draw, d.get('marketBrief') or {}, y)
     for index, section in enumerate((d.get('briefing') or {}).get('sections', [])[:3]):
+        section_top = y
         draw.rectangle((32, y, 1040, y + 44), fill=BLACK)
         draw.text((47, y + 3), '%02d  %s' % (index + 1, section['title']), font=f(27, bold=True), fill=WHITE)
         source = section.get('source', '')
         draw.text((1024 - tw(draw, source, f(20)), y + 10), source, font=f(20), fill=WHITE)
-        y += 50
+        y += 53
         items = section.get('items') or [{'title': 'Feed temporarily unavailable. Retrying next update.'}]
-        for item in items[:2]:
+        for item_index, item in enumerate(items[:2]):
+            y = section_top + 53 + item_index * 70
             title = item['title']
             lines, line = [], ''
             for word in title.split():
                 candidate = (line + ' ' + word).strip()
-                if tw(draw, candidate, f(24)) > 934 and line:
+                if tw(draw, candidate, f(28)) > 934 and line:
                     lines.append(line)
                     line = word
                 else:
@@ -637,11 +639,10 @@ def render_briefing(d, out_path):
             draw.ellipse((45, y + 15, 53, y + 23), fill=BLACK)
             for j, line in enumerate(lines[:2]):
                 if j == 1 and len(lines) > 2:
-                    line = clip(draw, line + ' …', f(24), 934)
-                draw.text((69, y + j * 28), line, font=f(24), fill=BLACK)
-            y += min(len(lines), 2) * 28 + 6
-        y += 10
-    if y > 1350:
+                    line = clip(draw, line + ' …', f(28), 934)
+                draw.text((69, y + j * 33), line, font=f(28), fill=BLACK)
+        y = section_top + 195
+    if y > 1370:
         raise ValueError('Briefing exceeds available screen height')
     draw.line((40, 1380, 1032, 1380), fill=BLACK, width=2)
     draw.text((42, 1391), 'AUTO UPDATES ~30 MIN  ·  HEADLINES: BBC / NPR  ·  SWIPE DOWN TO EXIT', font=f(20), fill=BLACK)
