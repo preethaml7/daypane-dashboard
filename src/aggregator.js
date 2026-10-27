@@ -10,6 +10,7 @@ import { getMlb } from './providers/mlb.js';
 import { getReported } from './reported.js';
 import { getConfig } from './config.js';
 import { getBriefing } from './providers/briefing.js';
+import { getMarketBrief } from './providers/markets.js';
 
 // local 模式：直接读本机 DB 与本地日志。
 function quotasLocal(db) {
@@ -43,7 +44,7 @@ export async function buildDashboard(db) {
   const cfg = getConfig();
   const cloud = cfg.mode === 'cloud';
 
-  const [weather, stocks, fx, news, mlb, newsEn, briefing] = await Promise.all([
+  const [weather, stocks, fx, news, mlb, newsEn, briefing, marketBrief] = await Promise.all([
     getWeather(),
     getStocks(),
     getFx(),
@@ -51,6 +52,7 @@ export async function buildDashboard(db) {
     getMlb(),
     getNews('en'),
     getBriefing()
+    , getMarketBrief()
   ]);
 
   const reported = cloud ? getReported() : null;
@@ -69,6 +71,7 @@ export async function buildDashboard(db) {
     quotas: { ...quotas, fetchedAt: cloud ? (reported && reported.ts) || null : now },
     weather,
     briefing,
+    marketBrief,
     stocks,
     clocks: getClocks(),
     fx,
