@@ -588,7 +588,7 @@ def draw_market_brief(draw, market, y):
         text = '%s  %s  %s (24h)' % (coin['symbol'], money(coin.get('price')), pct(coin.get('change'))) if coin.get('ok') else coin['symbol'] + ' unavailable'
         draw.text((44 + i*510, y + 226), text, font=f(25, bold=True), fill=BLACK)
     draw.text((44, y + 265), 'Crypto: Coinbase · Rolling 24h change', font=f(19), fill=BLACK)
-    return y + 288
+    return y + 308
 
 def render_briefing(d, out_path):
     """A high-contrast daily briefing designed for a monochrome Kindle."""
@@ -628,7 +628,7 @@ def render_briefing(d, out_path):
             lines, line = [], ''
             for word in title.split():
                 candidate = (line + ' ' + word).strip()
-                if tw(draw, candidate, f(25)) > 934 and line:
+                if tw(draw, candidate, f(24)) > 934 and line:
                     lines.append(line)
                     line = word
                 else:
@@ -637,9 +637,9 @@ def render_briefing(d, out_path):
             draw.ellipse((45, y + 15, 53, y + 23), fill=BLACK)
             for j, line in enumerate(lines[:2]):
                 if j == 1 and len(lines) > 2:
-                    line = clip(draw, line + ' …', f(25), 934)
-                draw.text((69, y + j * 30), line, font=f(25), fill=BLACK)
-            y += min(len(lines), 2) * 30 + 8
+                    line = clip(draw, line + ' …', f(24), 934)
+                draw.text((69, y + j * 28), line, font=f(24), fill=BLACK)
+            y += min(len(lines), 2) * 28 + 6
         y += 10
     if y > 1350:
         raise ValueError('Briefing exceeds available screen height')
