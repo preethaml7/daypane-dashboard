@@ -42,12 +42,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Read runtime input outside source branch
-        uses: actions/checkout@v4
-        with:
-          ref: runtime-data
-          path: runtime-input
-          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -64,7 +58,7 @@ jobs:
           SHAWN_MODE: cloud
           SHAWN_QUOTAS_FILE: ${{ github.workspace }}/runtime-input/quotas.json
           DISPATCH_REQUESTED_AT: ${{ inputs.requested_at }}
-        run: python tools/build_site.py --previous-url https://shenliucn-prog.github.io/daypane --output _site
+        run: python tools/build_site.py --previous-url https://preethaml7.github.io/daypane-dashboard --output _site
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
